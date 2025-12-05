@@ -11,11 +11,11 @@ public partial class TravelRequest
 
     public int? ToBeApprovedByHrId { get; set; }
 
-    public DateOnly? RequestRaisedOn { get; set; }
+    public DateTime? RequestRaisedOn { get; set; }
 
-    public DateOnly? FromDate { get; set; }
+    public DateTime? FromDate { get; set; }
 
-    public DateOnly? ToDate { get; set; }
+    public DateTime? ToDate { get; set; }
 
     public string? PurposeOfTravel { get; set; }
 
@@ -23,7 +23,7 @@ public partial class TravelRequest
 
     public string? RequestStatus { get; set; }
 
-    public DateOnly RequestApprovedOn { get; set; }
+    public DateTime? RequestApprovedOn { get; set; }
 
     public string? Priority { get; set; }
 

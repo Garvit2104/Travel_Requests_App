@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Travel_Requests_App.BLL.Locations;
+using Travel_Requests_App.DTOs.Locations;
 
 namespace Travel_Requests_App.Controllers
 {
@@ -7,5 +9,19 @@ namespace Travel_Requests_App.Controllers
     [ApiController]
     public class LocationsController : ControllerBase
     {
+        private readonly ILocationServices locationService;
+
+        public LocationsController(ILocationServices locationService)
+        {
+            this.locationService = locationService;
+        }
+
+        [HttpGet("locations")]
+
+        public List<LocationResponsesDTO> GetAllLocation()
+        {
+            var locations = locationService.GetAllLocation();
+            return locations;
+        }
     }
 }
