@@ -37,6 +37,17 @@ builder.Services.AddHttpClient("HRService", client =>
     client.BaseAddress = new Uri("https://localhost:7260"); // Replace with actual URL
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:3000") // React app URL
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                 .AllowCredentials();
+        });
+});
 
 var app = builder.Build();
 
@@ -46,6 +57,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("AllowReactApp");
 
 app.UseHttpsRedirection();
 

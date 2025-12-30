@@ -4,6 +4,6 @@ namespace Travel_Requests_App.DAL.Locations
 {
     public interface ILocationRepo
     {
-        List<Location> GetAllLocations();
+        public Task<IEnumerable<Location>> GetAllLocations();
     }
 }

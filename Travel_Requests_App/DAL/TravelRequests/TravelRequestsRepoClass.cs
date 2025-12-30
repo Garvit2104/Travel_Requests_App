@@ -13,11 +13,11 @@ namespace Travel_Requests_App.DAL.TravelRequests
         {
             this.context = context;
         }
-        public TravelRequest CreateTravelRequest(TravelRequest request)
+        public async Task<TravelRequest> CreateTravelRequest(TravelRequest request)
         {
-            var savedResult = context.TravelRequests.Add(request).Entity;
-            context.SaveChanges(); 
-            return savedResult;
+            var savedResult = await context.TravelRequests.AddAsync(request);
+            await context.SaveChangesAsync(); 
+            return savedResult.Entity;
         }
 
         public List<TravelRequest> GetAllPendingRequests(int HRid)

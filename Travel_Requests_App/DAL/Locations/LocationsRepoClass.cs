@@ -1,4 +1,5 @@
-﻿using Travel_Requests_App.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using Travel_Requests_App.Data;
 using Travel_Requests_App.Models;
 namespace Travel_Requests_App.DAL.Locations
 {
@@ -11,10 +12,10 @@ namespace Travel_Requests_App.DAL.Locations
             this.context = context;
         }
 
-        public List<Location> GetAllLocations()
+        public async Task<IEnumerable<Location>> GetAllLocations()
         {
-            var result = context.Locations.ToList();
-            return result;
+            var result =  context.Locations.AsNoTracking().AsEnumerable();
+            return await Task.FromResult(result);
         }
     }
 }

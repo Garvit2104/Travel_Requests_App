@@ -18,9 +18,9 @@ namespace Travel_Requests_App.Controllers
         }
 
         [HttpPost("travelrequests/new")]
-        public TravelResponseDTO CreatTravelRequest(TravelRequestsReqDTO tRequestDTO)
+        public async Task<TravelResponseDTO> CreatTravelRequest(TravelRequestsReqDTO tRequestDTO)
         {
-            var requests = travelRequestService.CreateTravelRequest(tRequestDTO);
+            var requests = await travelRequestService.CreateTravelRequest(tRequestDTO);
             return requests;
         }
 

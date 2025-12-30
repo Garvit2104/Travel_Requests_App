@@ -12,9 +12,9 @@ namespace Travel_Requests_App.BLL.Locations
             this.locationRepo = locationRepo;
         }
 
-        public List<LocationResponsesDTO> GetAllLocation()
+        public async Task<IEnumerable<LocationResponsesDTO>> GetAllLocation()
         {
-            var result = locationRepo.GetAllLocations();
+            var result = await locationRepo.GetAllLocations();
 
             List<LocationResponsesDTO> ls = new List<LocationResponsesDTO>();
 

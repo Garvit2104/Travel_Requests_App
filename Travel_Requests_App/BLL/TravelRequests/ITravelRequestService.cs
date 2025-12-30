@@ -6,7 +6,7 @@ namespace Travel_Requests_App.BLL.TravelRequests
 {
     public interface ITravelRequestService
     {
-        TravelResponseDTO CreateTravelRequest(TravelRequestsReqDTO travelRequestDTO);
+        public Task<TravelResponseDTO> CreateTravelRequest(TravelRequestsReqDTO travelRequestDTO);
 
         List<TravelResponseDTO> GetAllPendingRequests(int HRid);
 

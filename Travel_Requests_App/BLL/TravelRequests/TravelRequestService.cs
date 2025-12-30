@@ -20,40 +20,62 @@ namespace Travel_Requests_App.BLL.TravelRequests
             this.hrClient = hrClient;
         }
 
-        public TravelResponseDTO CreateTravelRequest(TravelRequestsReqDTO travelRequestDTO)
+        public static TravelRequest RequestDtoToEntity(TravelRequestsReqDTO travelRequestDTO)
         {
-            TravelRequest entity = new TravelRequest();
-            entity.RaisedByEmployeeId = travelRequestDTO.raised_by_employee_id;
-            entity.ToBeApprovedByHrId = travelRequestDTO.to_be_approved_by_hr_id;
-            entity.RequestRaisedOn = travelRequestDTO.request_raised_on;
-            entity.FromDate = travelRequestDTO.from_date;
-            entity.ToDate = travelRequestDTO.to_date;
-            entity.PurposeOfTravel = travelRequestDTO.purpose_of_travel;
-            entity.LocationId = travelRequestDTO.location_id;
-            entity.RequestStatus = travelRequestDTO.request_status;
-            entity.RequestApprovedOn = travelRequestDTO.RequestApprovedOn ?? DateTime.Now;
-            entity.Priority = travelRequestDTO.Priority;
+            TravelRequest trEntity = new TravelRequest();
+            trEntity.RaisedByEmployeeId = travelRequestDTO.raised_by_employee_id;
+            trEntity.ToBeApprovedByHrId = travelRequestDTO.to_be_approved_by_hr_id;
+            trEntity.RequestRaisedOn = DateTime.Now;
+            trEntity.FromDate = travelRequestDTO.from_date;
+            trEntity.ToDate = travelRequestDTO.to_date;
+            trEntity.PurposeOfTravel = travelRequestDTO.purpose_of_travel;
+            trEntity.LocationId = travelRequestDTO.location_id;
+            trEntity.RequestStatus = travelRequestDTO.request_status;
+            trEntity.RequestApprovedOn = DateTime.Now;
+            trEntity.Priority = travelRequestDTO.Priority;
 
-            var result = travelRequestRepo.CreateTravelRequest(entity);
+            if (trEntity.FromDate <= DateTime.Now.Date) 
+                throw new ArgumentException("FromDate must be greater than today's date.");
 
-            List<TravelResponseDTO> ls = new List<TravelResponseDTO>();
+            if (trEntity.ToDate <= trEntity.FromDate) 
+                throw new ArgumentException("ToDate must be greater than FromDate.");
 
+            return trEntity;
+        }
 
+        public static TravelResponseDTO EntityToResponseDto(TravelRequest entity)
+        {
             TravelResponseDTO response = new TravelResponseDTO
             {
-                request_id = result.RequestId,
-                raised_by_employee_id = result.RaisedByEmployeeId,
-                to_be_approved_by_hr_id = result.ToBeApprovedByHrId,
-                request_raised_on = result.RequestRaisedOn,
-                from_date = result.FromDate,
-                to_date = result.ToDate,
-                purpose_of_travel = result.PurposeOfTravel,
-                location_id = result.LocationId,
-                request_status = result.RequestStatus,
-                RequestApprovedOn = result.RequestApprovedOn,
-                Priority = result.Priority
+                request_id = entity.RequestId,
+                raised_by_employee_id = entity.RaisedByEmployeeId,
+                to_be_approved_by_hr_id = entity.ToBeApprovedByHrId,
+                request_raised_on = entity.RequestRaisedOn,
+                from_date = entity.FromDate,
+                to_date = entity.ToDate,
+                purpose_of_travel = entity.PurposeOfTravel,
+                location_id = entity.LocationId,
+                request_status = entity.RequestStatus,
+                RequestApprovedOn = entity.RequestApprovedOn,
+                Priority = entity.Priority
             };
             return response;
+        }
+        public async Task<TravelResponseDTO> CreateTravelRequest(TravelRequestsReqDTO travelRequestDTO)
+        {
+            if (await hrClient.GetEmployeeById(travelRequestDTO.raised_by_employee_id.GetValueOrDefault()) == null)
+                throw new Exception("This EmployeeId doesn't exist");
+            var user = await hrClient.GetEmployeeById(travelRequestDTO.to_be_approved_by_hr_id.GetValueOrDefault());
+            if (user.role != "HR")
+                throw new Exception("No HR exist with this Id");
+       
+            var entity = RequestDtoToEntity(travelRequestDTO);
+
+            // save entities in Db and used the same result in reponse back
+            var result = await travelRequestRepo.CreateTravelRequest(entity);
+
+            return EntityToResponseDto(result);
+            
         }
 
         public List<TravelResponseDTO> GetAllPendingRequests(int HRid)

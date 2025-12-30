@@ -18,9 +18,9 @@ namespace Travel_Requests_App.Controllers
 
         [HttpGet("locations")]
 
-        public List<LocationResponsesDTO> GetAllLocation()
+        public async Task<IEnumerable<LocationResponsesDTO>> GetAllLocation()
         {
-            var locations = locationService.GetAllLocation();
+            var locations = await locationService.GetAllLocation();
             return locations;
         }
     }

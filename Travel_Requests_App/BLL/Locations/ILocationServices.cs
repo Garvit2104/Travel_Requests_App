@@ -5,7 +5,7 @@ namespace Travel_Requests_App.BLL.Locations
 {
     public interface ILocationServices
     {
-        List<LocationResponsesDTO> GetAllLocation();
+        public Task<IEnumerable<LocationResponsesDTO>> GetAllLocation();
 
         
     }
