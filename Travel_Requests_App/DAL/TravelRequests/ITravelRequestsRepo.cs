@@ -6,10 +6,10 @@ namespace Travel_Requests_App.DAL.TravelRequests
     {
         public Task<TravelRequest> CreateTravelRequest(TravelRequest request);
 
-        public List<TravelRequest> GetAllPendingRequests(int HRid);
+        public Task<IEnumerable<TravelRequest>> GetAllPendingRequests(int HRid);
 
-        TravelRequest getTravelRequestById(int trid);
+        public Task<TravelRequest> getTravelRequestById(int trid);
 
-        TravelRequest getUpdateRequestStatus(TravelRequest request);
+        public Task<TravelRequest> getUpdateRequestStatus(TravelRequest request);
     }
 }

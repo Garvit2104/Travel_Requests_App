@@ -7,5 +7,6 @@ namespace Travel_Requests_App.Controllers
     [ApiController]
     public class TravelBudgetAllocationController : ControllerBase
     {
+
     }
 }

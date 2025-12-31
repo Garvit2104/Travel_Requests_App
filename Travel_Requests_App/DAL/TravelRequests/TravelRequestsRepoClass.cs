@@ -20,22 +20,22 @@ namespace Travel_Requests_App.DAL.TravelRequests
             return savedResult.Entity;
         }
 
-        public List<TravelRequest> GetAllPendingRequests(int HRid)
+        public async Task<IEnumerable<TravelRequest>> GetAllPendingRequests(int HRid)
         {
-            var pendingUsers = context.TravelRequests.Where(u => u.ToBeApprovedByHrId == HRid && u.RequestStatus == "New").ToList();
-            return pendingUsers;
+            var pendingUsers =  context.TravelRequests.AsNoTracking().Where(u => u.ToBeApprovedByHrId == HRid && u.RequestStatus == "New").AsEnumerable();
+            return await Task.FromResult(pendingUsers);
         }
 
-        public TravelRequest getTravelRequestById(int trid)
+        public async Task<TravelRequest> getTravelRequestById(int trid)
         {
-            var result = context.TravelRequests.Find(trid);
+            var result = await context.TravelRequests.FindAsync(trid);
             return result;
         }
 
-        public TravelRequest getUpdateRequestStatus( TravelRequest request)
+        public async Task<TravelRequest> getUpdateRequestStatus( TravelRequest request)
         {
             context.Entry(request).State = EntityState.Modified;
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             return request;
         }

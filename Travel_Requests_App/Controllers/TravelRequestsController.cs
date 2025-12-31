@@ -26,28 +26,65 @@ namespace Travel_Requests_App.Controllers
 
         [HttpGet("travelrequest/{HRid}/pending")]
 
-        public List<TravelResponseDTO> GetAllPendingRequests(int HRid)
+        public async Task<IActionResult> GetAllPendingRequests(int HRid)
         {
-            var result = travelRequestService.GetAllPendingRequests(HRid);
-            return result;
+            try
+            {
+                var result = await travelRequestService.GetAllPendingRequests(HRid);
+                return Ok(result);
+            }
+            catch(Exception ex)
+            {
+                return Problem(title: "Error", detail: ex.Message, statusCode: 400);
+            }
         }
 
         [HttpGet("travelrequests/{trid}")]
-        public TravelResponseDTO getTravelRequestById(int trid)
+        public async Task<ActionResult<TravelResponseDTO>> getTravelRequestById(int trid)
         {
-            var result = travelRequestService.getTravelRequestById(trid);
-            return result;
+            try
+            {
+                var result = await travelRequestService.getTravelRequestById(trid);
+                return Ok(result);
+
+            }
+            catch(Exception ex)
+            {
+                return Problem(title: "Error", detail: ex.Message, statusCode: 400);
+            }
+            
         }
 
         [HttpPut("travelrequests/{trid}/update")]
 
-        public TravelResponseDTO getUpdateRequestStatus(int trid, UpdateRequestDTO updateDTO)
+        public async Task<IActionResult> getUpdateRequestStatus(int trid, UpdateRequestDTO updateDTO)
         {
-            var result = travelRequestService.getUpdateRequestStatus(trid, updateDTO);
-            return result;
+            try
+            {
+                var result = await travelRequestService.getUpdateRequestStatus(trid, updateDTO);
+                return Ok(result);
+            }
+            catch(Exception ex)
+            {
+                return Problem(title: "Error", detail: ex.Message, statusCode: 400);
+            }
         }
 
-        
+        [HttpPost("travelrequests/calculatebudget/{trid}")]
+        public async Task<IActionResult> CalculateBudget(int trid)
+        {
+            try
+            {
+                var result = await travelRequestService.CalculateBudget(trid);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return Problem(title: "Error", detail: ex.Message, statusCode: 400);
+            }
+        }
+
+
 
     }
 }

@@ -8,13 +8,13 @@ namespace Travel_Requests_App.BLL.TravelRequests
     {
         public Task<TravelResponseDTO> CreateTravelRequest(TravelRequestsReqDTO travelRequestDTO);
 
-        List<TravelResponseDTO> GetAllPendingRequests(int HRid);
+        Task<IEnumerable<TravelResponseDTO>> GetAllPendingRequests(int HRid);
 
-        TravelResponseDTO getTravelRequestById(int trid);
+        Task<TravelResponseDTO> getTravelRequestById(int trid);
 
-        TravelResponseDTO getUpdateRequestStatus(int trid, UpdateRequestDTO updateDTO);
+        Task<TravelResponseDTO> getUpdateRequestStatus(int trid, UpdateRequestDTO updateDTO);
 
-        public int CalculateBudget(int travelRequestId);
+        public Task<int> CalculateBudget(int travelRequestId);
 
         
 

@@ -34,13 +34,9 @@ namespace Travel_Requests_App.Controllers
         //    return result;
         //}
 
-        [HttpPost("calculatebudget/{travelRequestId}")]
+       
 
-        public int CalculateBudget(int travelRequestId)
-        {
-            var result = travelReqService.CalculateBudget(travelRequestId);
-            return result;
-        }
+        
 
     }
 }

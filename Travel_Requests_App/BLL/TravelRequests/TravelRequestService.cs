@@ -78,59 +78,47 @@ namespace Travel_Requests_App.BLL.TravelRequests
             
         }
 
-        public List<TravelResponseDTO> GetAllPendingRequests(int HRid)
+        public async Task<IEnumerable<TravelResponseDTO>> GetAllPendingRequests(int HRid)
         {
-            var result = travelRequestRepo.GetAllPendingRequests(HRid);
+            var user = await hrClient.GetEmployeeById(HRid);
+            if (user == null)
+                throw new Exception("Employee with this Id does not exist");
 
-            List<TravelResponseDTO> ls = new List<TravelResponseDTO>();
+            if (user.role != "HR")
+                throw new Exception("HR with this Id does not exisit");
+
+            var result = await travelRequestRepo.GetAllPendingRequests(HRid);
+
+            if (result.Count() == 0)
+                throw new Exception("No Pending Request for this HR");
+
+
+            List<TravelResponseDTO> pendingReqList = new List<TravelResponseDTO>();
 
             foreach(var item in result)
-            {
-                TravelResponseDTO response = new TravelResponseDTO();
-
-                response.request_id = item.RequestId;
-                response.raised_by_employee_id = item.RaisedByEmployeeId;
-                response.to_be_approved_by_hr_id = item.ToBeApprovedByHrId;
-                response.request_raised_on = item.RequestRaisedOn;
-                response.from_date = item.FromDate;
-                response.to_date = item.ToDate;
-                response.purpose_of_travel = item.PurposeOfTravel;
-                response.location_id = item.LocationId;
-                response.request_status = item.RequestStatus;
-                response.RequestApprovedOn = item.RequestApprovedOn;
-                response.Priority = item.Priority;
-
-                ls.Add(response);
-
+            { 
+                // calling reusable response dto
+                TravelResponseDTO response = EntityToResponseDto(item);
+                pendingReqList.Add(response);
             }
-            return ls;    
+            return pendingReqList;    
             
         }
 
-        public TravelResponseDTO getTravelRequestById(int trid)
+        public async Task<TravelResponseDTO> getTravelRequestById(int trid)
         {
-            var result = travelRequestRepo.getTravelRequestById(trid);
-            TravelResponseDTO response = new TravelResponseDTO();
-
-            response.request_id = result.RequestId;
-            response.raised_by_employee_id = result.RaisedByEmployeeId;
-            response.to_be_approved_by_hr_id = result.ToBeApprovedByHrId;
-            response.request_raised_on = result.RequestRaisedOn;
-            response.from_date = result.FromDate;
-            response.to_date = result.ToDate;
-            response.purpose_of_travel = result.PurposeOfTravel;
-            response.location_id = result.LocationId;
-            response.request_status = result.RequestStatus;
-            response.RequestApprovedOn = result.RequestApprovedOn;
-            response.Priority = result.Priority;
+            var result = await travelRequestRepo.getTravelRequestById(trid);
+            if(result == null)
+                throw new Exception("No Travel Request with this Travel Request Id");
+            TravelResponseDTO response = EntityToResponseDto(result);
 
             return response;
 
         }
 
-        public TravelResponseDTO getUpdateRequestStatus(int trid, UpdateRequestDTO updateDTO)
+        public async Task<TravelResponseDTO> getUpdateRequestStatus(int trid, UpdateRequestDTO updateDTO)
         {
-            var result = travelRequestRepo.getTravelRequestById(trid);
+            var result = await travelRequestRepo.getTravelRequestById(trid);
 
             if (result == null)
             {
@@ -145,31 +133,22 @@ namespace Travel_Requests_App.BLL.TravelRequests
             // updating
             result.RequestStatus = updateDTO.request_status;
 
-            var getResult = travelRequestRepo.getUpdateRequestStatus(result);
+            var getResult = await travelRequestRepo.getUpdateRequestStatus(result);
             // response back to user
-            TravelResponseDTO response = new TravelResponseDTO();
-           
-            response.request_id = getResult.RequestId;
-            response.raised_by_employee_id = getResult.RaisedByEmployeeId;
-            response.to_be_approved_by_hr_id = getResult.ToBeApprovedByHrId;
-            response.request_raised_on = getResult.RequestRaisedOn;
-            response.from_date = getResult.FromDate;
-            response.to_date = result.ToDate;
-            response.purpose_of_travel = getResult.PurposeOfTravel;
-            response.location_id = getResult.LocationId;
-            response.request_status = getResult.RequestStatus;
-            response.Priority = getResult.Priority;
-            response.RequestApprovedOn = getResult.RequestApprovedOn;
 
-            if(getResult.RequestStatus=="Approved")
+            // Map via reusable DTO mapper
+            var response = EntityToResponseDto(getResult);
+
+
+            if (getResult.RequestStatus=="Approved")
             {
                 int days = (int)(response.to_date - response.from_date).GetValueOrDefault().TotalDays;
                 var travelBudgetAllocation = new TravelBudgetAllocation
                 {
                     TravelRequestId = trid,
-                    ApprovedBudget = CalculateApprovedBudget(getResult.RaisedByEmployeeId.GetValueOrDefault(), getResult.Priority, (int)(getResult.ToDate - getResult.FromDate).Value.TotalDays),
-                    ApprovedModeOfTravel = CalculateModeOfTravelBudget(),
-                    ApprovedHotelStarRating = CalculateHotelBudget((int)getResult.RaisedByEmployeeId.GetValueOrDefault())
+                    ApprovedBudget = await CalculateApprovedBudget(getResult.RaisedByEmployeeId.GetValueOrDefault(), getResult.Priority, (int)(getResult.ToDate - getResult.FromDate).Value.TotalDays),
+                    ApprovedModeOfTravel = await CalculateModeOfTravelBudget(),
+                    ApprovedHotelStarRating = await CalculateHotelBudget((int)getResult.RaisedByEmployeeId.GetValueOrDefault())
                 };
             travelBudgetRepo.AddBudgetAllocation(travelBudgetAllocation);
             }
@@ -178,24 +157,24 @@ namespace Travel_Requests_App.BLL.TravelRequests
 
         }
 
-        public int CalculateBudget(int travelRequestId)
+        public async Task<int> CalculateBudget(int travelRequestId)
         {
-            TravelRequest travelRequest = travelRequestRepo.getTravelRequestById(travelRequestId);
+            TravelRequest travelRequest = await travelRequestRepo.getTravelRequestById(travelRequestId);
 
             if (travelRequest == null)
                 throw new Exception("Travel Request Id not exist");
 
             if (travelRequest.RequestStatus != "Approved")
                 throw new Exception("Travel Request is not approved so can not calculate the budget for it");
-            int budget = CalculateApprovedBudget(travelRequest.RaisedByEmployeeId.GetValueOrDefault(), travelRequest.Priority, (int)(travelRequest.ToDate - travelRequest.FromDate).Value.TotalDays);
+            int budget = await CalculateApprovedBudget(travelRequest.RaisedByEmployeeId.GetValueOrDefault(), travelRequest.Priority, (int)(travelRequest.ToDate - travelRequest.FromDate).Value.TotalDays);
 
             return budget;
 
         }
 
-        public string CalculateHotelBudget(int requestRaisedById)
+        public async Task<string> CalculateHotelBudget(int requestRaisedById)
         {
-            UserResponseDTO user = hrClient.GetEmployeeById(requestRaisedById).Result;
+            UserResponseDTO user = await hrClient.GetEmployeeById(requestRaisedById);
             string[] HrHotel = { "7-Star", "5-Star" };
             string[] OthersHotel = { "5-Star", "3-Star" };
 
@@ -212,17 +191,17 @@ namespace Travel_Requests_App.BLL.TravelRequests
             return selectedHotel;
         }
 
-        public string CalculateModeOfTravelBudget()
+        public async Task<string> CalculateModeOfTravelBudget()
         {
             Random rand = new();
             string[] ModeOfTravel = { "Air", "Train", "Bus" };
             string mode = ModeOfTravel[rand.Next(ModeOfTravel.Length)];
-            return mode;
+            return await Task.FromResult(mode);
         }
 
-        public int CalculateApprovedBudget(int id, string priority, int days)
+        public async Task<int> CalculateApprovedBudget(int id, string priority, int days)
         {
-            UserResponseDTO user = hrClient.GetEmployeeById(id).Result;
+            UserResponseDTO user = await hrClient.GetEmployeeById(id);
             string userGradeId = user.current_grade_id;
             int finalBudget;
             int maxBudgetByGrade = 0;
